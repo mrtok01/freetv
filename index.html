@@ -9,14 +9,22 @@
 body{font-family:'Segoe UI',sans-serif;background:#0d1117;min-height:100vh}
 .header{background:#161b22;padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #30363d}
 .header-title{color:#fff;font-size:18px;font-weight:600}
+
+.player-area{background:#000;display:none;position:relative}
+.player-area iframe{width:100%;height:220px;border:none;display:block}
+.now-playing{background:#161b22;padding:8px 16px;font-size:13px;color:#8b949e;border-bottom:1px solid #21262d}
+.now-playing span{color:#e6edf3;font-weight:500}
+.close-btn{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.6);border:none;color:#fff;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+
 .search-wrap{padding:12px 16px;background:#161b22;border-bottom:1px solid #21262d}
 .search-wrap input{width:100%;background:#21262d;border:1px solid #30363d;border-radius:8px;padding:8px 12px;color:#e6edf3;font-size:14px;outline:none}
 .search-wrap input::placeholder{color:#8b949e}
 .cat-bar{display:flex;gap:8px;padding:10px 16px;background:#161b22;overflow-x:auto;border-bottom:1px solid #21262d}
 .cat-btn{background:transparent;border:1px solid #30363d;border-radius:20px;padding:5px 14px;color:#8b949e;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .cat-btn.active{background:#1f6feb;border-color:#1f6feb;color:#fff}
-.ch-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #21262d;cursor:pointer;text-decoration:none}
+.ch-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #21262d;cursor:pointer}
 .ch-item:hover{background:#161b22}
+.ch-item.active-ch{background:#1f6feb22;border-left:3px solid #1f6feb}
 .ch-num{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
 .ch-name{color:#e6edf3;font-size:15px;font-weight:500}
 .ch-desc{color:#8b949e;font-size:12px;margin-top:2px}
@@ -29,6 +37,13 @@ body{font-family:'Segoe UI',sans-serif;background:#0d1117;min-height:100vh}
   <span style="font-size:22px">📺</span>
   <span class="header-title">ฟรีทีวีไทย ออนไลน์</span>
 </div>
+
+<div class="player-area" id="player-area">
+  <button class="close-btn" onclick="closePlayer()">✕</button>
+  <iframe id="tv-frame" allowfullscreen allow="autoplay"></iframe>
+</div>
+<div class="now-playing" id="now-playing" style="display:none">กำลังดู: <span id="now-ch">-</span></div>
+
 <div class="search-wrap">
   <input type="text" id="search" placeholder="🔍 ค้นหาช่อง...">
 </div>
@@ -56,7 +71,25 @@ const channels = [
 ];
 
 const cats = ["ทั้งหมด",...[...new Set(channels.map(c=>c.cat))]];
-let activeCat = "ทั้งหมด", query = "";
+let activeCat="ทั้งหมด", query="", activeCh=null;
+
+function playChannel(ch){
+  activeCh = ch;
+  document.getElementById("tv-frame").src = ch.url;
+  document.getElementById("player-area").style.display="block";
+  document.getElementById("now-playing").style.display="block";
+  document.getElementById("now-ch").innerText = ch.name;
+  window.scrollTo({top:0,behavior:"smooth"});
+  renderList();
+}
+
+function closePlayer(){
+  document.getElementById("tv-frame").src="";
+  document.getElementById("player-area").style.display="none";
+  document.getElementById("now-playing").style.display="none";
+  activeCh=null;
+  renderList();
+}
 
 function renderCats(){
   document.getElementById("cats").innerHTML = cats.map(c=>`<button class="cat-btn${c===activeCat?' active':''}" onclick="setCat('${c}')">${c}</button>`).join("");
@@ -71,14 +104,14 @@ function renderList(){
   const el = document.getElementById("list");
   if(!f.length){el.innerHTML=`<div class="empty">ไม่พบช่องที่ค้นหาครับ</div>`;return;}
   el.innerHTML = f.map(c=>`
-    <a class="ch-item" href="${c.url}" target="_blank" rel="noopener">
+    <div class="ch-item${activeCh&&activeCh.num===c.num?' active-ch':''}" onclick='playChannel(${JSON.stringify(c)})'>
       <div class="ch-num" style="background:${c.color}22;color:${c.color}">${c.num}</div>
       <div>
         <div class="ch-name">${c.name}</div>
         <div class="ch-desc">${c.desc}</div>
       </div>
-      <span class="ch-arrow">›</span>
-    </a>
+      <span class="ch-arrow">▶</span>
+    </div>
   `).join("");
 }
 
