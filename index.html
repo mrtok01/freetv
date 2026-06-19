@@ -1,1 +1,93 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.header{background:#0d1117;padding:14px 16px;display:flex;align-items:center;gap:10px;border-radius:var(--border-radius-lg) var(--border-radius-lg) 0 0}
+.header-title{color:#fff;font-size:17px;font-weight:500}
+.search-wrap{padding:12px 16px;background:#161b22}
+.search-wrap input{width:100%;background:#21262d;border:0.5px solid #30363d;border-radius:var(--border-radius-md);padding:8px 12px;color:#e6edf3;font-size:14px;outline:none}
+.search-wrap input::placeholder{color:#8b949e}
+.cat-bar{display:flex;gap:8px;padding:10px 16px;background:#161b22;overflow-x:auto}
+.cat-btn{background:transparent;border:0.5px solid #30363d;border-radius:20px;padding:5px 14px;color:#8b949e;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.cat-btn.active{background:#1f6feb;border-color:#1f6feb;color:#fff}
+.channel-list{background:#0d1117;border-radius:0 0 var(--border-radius-lg) var(--border-radius-lg)}
+.ch-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid #21262d;cursor:pointer;text-decoration:none}
+.ch-item:last-child{border-bottom:none}
+.ch-item:hover{background:#161b22}
+.ch-num{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+.ch-info{flex:1;min-width:0}
+.ch-name{color:#e6edf3;font-size:14px;font-weight:500}
+.ch-desc{color:#8b949e;font-size:12px;margin-top:2px}
+.ch-arrow{color:#30363d;font-size:16px}
+.empty{padding:32px 16px;text-align:center;color:#8b949e;font-size:14px;background:#0d1117}
+</style>
 
+<div style="border-radius:var(--border-radius-lg);overflow:hidden;border:0.5px solid #30363d;">
+  <div class="header">
+    <i class="ti ti-device-tv" style="font-size:20px;color:#1f6feb" aria-hidden="true"></i>
+    <span class="header-title">ฟรีทีวีไทย</span>
+  </div>
+  <div class="search-wrap">
+    <input type="text" id="search" placeholder="ค้นหาช่อง...">
+  </div>
+  <div class="cat-bar" id="cats"></div>
+  <div class="channel-list" id="list"></div>
+</div>
+
+<script>
+const channels = [
+  {num:"3",name:"ช่อง 3 HD",desc:"ช่อง 3 สด",cat:"ข่าว/บันเทิง",color:"#1f6feb",url:"https://www.ch3thailand.com/live"},
+  {num:"7",name:"ช่อง 7 HD",desc:"ช่อง 7 สด",cat:"ข่าว/บันเทิง",color:"#d29922",url:"https://www.ch7.com/live"},
+  {num:"8",name:"3 Family",desc:"ช่อง 3 Family สด",cat:"ข่าว/บันเทิง",color:"#1f6feb",url:"https://www.ch3thailand.com/live"},
+  {num:"9",name:"MCOT HD",desc:"ช่อง 9 MCOT สด",cat:"ข่าว/บันเทิง",color:"#388bfd",url:"https://www.mcot.net/live"},
+  {num:"NBT",name:"NBT",desc:"สถานีโทรทัศน์แห่งชาติ",cat:"ภาครัฐ",color:"#3fb950",url:"https://www.nbt.or.th/live"},
+  {num:"11",name:"Thai PBS",desc:"ไทยพีบีเอส สด",cat:"ภาครัฐ",color:"#3fb950",url:"https://www.thaipbs.or.th/live"},
+  {num:"ONE",name:"One 31",desc:"ช่อง ONE สด",cat:"ข่าว/บันเทิง",color:"#f85149",url:"https://www.one31.net/live"},
+  {num:"GMM",name:"GMM 25",desc:"GMM 25 สด",cat:"ข่าว/บันเทิง",color:"#d2a8ff",url:"https://www.gmm25.com/live"},
+  {num:"WP",name:"Workpoint TV",desc:"Workpoint สด",cat:"ข่าว/บันเทิง",color:"#f0883e",url:"https://www.workpointtv.com/live"},
+  {num:"PP",name:"PPTV HD",desc:"PPTV สด",cat:"ข่าว",color:"#388bfd",url:"https://www.pptvhd36.com/live"},
+  {num:"TNN",name:"TNN 16",desc:"TNN ช่องข่าว สด",cat:"ข่าว",color:"#388bfd",url:"https://www.tnnthailand.com/live"},
+  {num:"NN",name:"Nation TV",desc:"Nation ข่าว สด",cat:"ข่าว",color:"#388bfd",url:"https://www.nationtv.tv/live"},
+  {num:"BEC",name:"3 SD",desc:"ช่อง 3 SD สด",cat:"ข่าว/บันเทิง",color:"#1f6feb",url:"https://www.ch3thailand.com/live"},
+  {num:"AM",name:"Amarin TV",desc:"Amarin HD สด",cat:"ข่าว/บันเทิง",color:"#da3633",url:"https://www.amarintv.com/live"},
+  {num:"SF",name:"Spring News",desc:"Spring News สด",cat:"ข่าว",color:"#3fb950",url:"https://www.springnews.co.th/live"},
+  {num:"BG",name:"Bright TV",desc:"Bright TV สด",cat:"ข่าว/บันเทิง",color:"#d29922",url:"https://www.brighttv.co.th/live"},
+  {num:"TV5",name:"ช่อง 5 HD",desc:"ช่อง 5 กองทัพบก สด",cat:"ภาครัฐ",color:"#3fb950",url:"https://www.tv5hd.com/live"},
+  {num:"VoiCE",name:"Voice TV",desc:"Voice TV สด",cat:"ข่าว",color:"#8b949e",url:"https://www.voicetv.co.th/live"},
+];
+
+const cats = ["ทั้งหมด",...[...new Set(channels.map(c=>c.cat))]];
+let activeCat = "ทั้งหมด";
+let query = "";
+
+const catsEl = document.getElementById("cats");
+const listEl = document.getElementById("list");
+const searchEl = document.getElementById("search");
+
+function renderCats(){
+  catsEl.innerHTML = cats.map(c=>`<button class="cat-btn${c===activeCat?' active':''}" onclick="setCat('${c}')">${c}</button>`).join("");
+}
+
+function renderList(){
+  const filtered = channels.filter(c=>{
+    const matchCat = activeCat==="ทั้งหมด" || c.cat===activeCat;
+    const matchQ = !query || c.name.toLowerCase().includes(query) || c.desc.toLowerCase().includes(query);
+    return matchCat && matchQ;
+  });
+  if(!filtered.length){listEl.innerHTML=`<div class="empty">ไม่พบช่องที่ค้นหา</div>`;return;}
+  listEl.innerHTML = filtered.map(c=>`
+    <a class="ch-item" href="${c.url}" target="_blank" rel="noopener">
+      <div class="ch-num" style="background:${c.color}22;color:${c.color}">${c.num}</div>
+      <div class="ch-info">
+        <div class="ch-name">${c.name}</div>
+        <div class="ch-desc">${c.desc}</div>
+      </div>
+      <i class="ti ti-external-link ch-arrow" aria-hidden="true"></i>
+    </a>
+  `).join("");
+}
+
+function setCat(c){activeCat=c;renderCats();renderList();}
+searchEl.addEventListener("input",e=>{query=e.target.value.toLowerCase();renderList();});
+
+renderCats();renderList();
+</script>
